@@ -30,13 +30,12 @@ function categorizeEvent(title: string) {
     }
   }
   return {
-    mainCategory: "",
     color: "border-gray-500",
   };
 }
 
 export function EventCard({ event, isFavorite, onFavorite }: EventCardProps) {
-  const { mainCategory, color } = categorizeEvent(event.title);
+  const { color } = categorizeEvent(event.title);
   const timeRemaining =
     event.startDate > new Date()
       ? formatDistanceToNow(event.startDate, { addSuffix: true })
@@ -86,16 +85,15 @@ export function EventCard({ event, isFavorite, onFavorite }: EventCardProps) {
           )}
 
           {event.location && (
-            <Button
-              as="a"
+            <a
               href={event.location}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 transition-colors duration-200"
+              className="flex items-center gap-2 transition-colors duration-200 bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90"
             >
               <Tv className="h-5 w-5" />
               <span>Watch Stream</span>
-            </Button>
+            </a>
           )}
         </div>
       </CardContent>
