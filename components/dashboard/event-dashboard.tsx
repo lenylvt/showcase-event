@@ -1,90 +1,111 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Calendar, Moon, Sun, Search } from 'lucide-react';
-import { format } from 'date-fns';
-import { EventCard } from './event-card';
-import { useICalEvents } from '@/hook/use-ical-events';
-import { useFavorites } from '@/hook/use-favorites';
-import { Event } from '@/lib/types';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFavorites } from "@/hook/use-favorites";
+import { useICalEvents } from "@/hook/use-ical-events";
+import { Event } from "@/lib/types";
+import { format } from "date-fns";
+import { Calendar, Moon, Search, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
+import { EventCard } from "./event-card";
 
-const ICAL_URL = 'https://www.addevent.com/feed/aahmgugdw.ics';
+const ICAL_URL = "https://www.addevent.com/feed/aahmgugdw.ics";
 
 export function EventDashboard() {
   const { events, loading, error } = useICalEvents(ICAL_URL);
   const { favorites, toggleFavorite } = useFavorites();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
-  const [currentTab, setCurrentTab] = useState("upcoming");
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     // Check system preference
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     setIsDarkMode(prefersDark);
-    
+
     // Add dark mode class if needed
     if (prefersDark) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     }
   }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle("dark");
   };
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-screen bg-gradient-to-b from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="animate-pulse flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-full border-4 border-purple-500 border-t-transparent animate-spin" />
-        <span className="text-xl font-semibold text-purple-600 dark:text-purple-400">Loading events... 🎮</span>
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-purple-500 border-t-transparent animate-spin" />
+          <span className="text-xl font-semibold text-purple-600 dark:text-purple-400">
+            Loading events... 🎮
+          </span>
+        </div>
       </div>
-    </div>
-  );
+    );
 
-  if (error) return (
-    <div className="flex justify-center items-center h-screen bg-red-50 dark:bg-red-900">
-      <div className="text-red-500 dark:text-red-400 text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-2">Error Loading Events</h2>
-        <p>{error.message}</p>
+  if (error)
+    return (
+      <div className="flex justify-center items-center h-screen bg-red-50 dark:bg-red-900">
+        <div className="text-red-500 dark:text-red-400 text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+          <h2 className="text-xl font-bold mb-2">Error Loading Events</h2>
+          <p>{error.message}</p>
+        </div>
       </div>
-    </div>
-  );
+    );
 
   const filterEvents = (events: Event[]) => {
-    return events.filter(event => {
-      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          event.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesYear = selectedYear === "all" || 
-                         format(event.startDate, 'yyyy') === selectedYear;
-      
+    return events.filter((event) => {
+      const matchesSearch =
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesYear =
+        selectedYear === "all" ||
+        format(event.startDate, "yyyy") === selectedYear;
+
       return matchesSearch && matchesYear;
     });
   };
 
   const currentDate = new Date();
   const pastEvents = events
-    .filter(event => event.startDate < currentDate)
+    .filter((event) => event.startDate < currentDate)
     .sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-  
+
   const upcomingEvents = events
-    .filter(event => event.startDate >= currentDate)
+    .filter((event) => event.startDate >= currentDate)
     .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-  const availableYears = ["all", ...new Set(pastEvents.map(event => 
-    format(event.startDate, 'yyyy')
-  ))].sort((a, b) => b.localeCompare(a));
+  const availableYears = [
+    "all",
+    ...new Set(pastEvents.map((event) => format(event.startDate, "yyyy"))),
+  ].sort((a, b) => b.localeCompare(a));
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6 transition-colors duration-200`}>
+    <div
+      className={`min-h-screen bg-gradient-to-b from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6 transition-colors duration-200`}
+    >
       <div className="max-w-4xl mx-auto space-y-6">
-        
         {/* Première carte */}
         <Card className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 shadow-xl border-0">
           <CardHeader className="border-b dark:border-gray-700">
@@ -98,7 +119,7 @@ export function EventDashboard() {
                     Gaming Events
                   </CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-400">
-                    {format(currentDate, 'PPPP')}
+                    {format(currentDate, "PPPP")}
                   </CardDescription>
                 </div>
               </div>
@@ -108,15 +129,16 @@ export function EventDashboard() {
                 onClick={toggleDarkMode}
                 className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                {isDarkMode ? 
-                  <Sun className="h-5 w-5 text-yellow-500" /> : 
+                {isDarkMode ? (
+                  <Sun className="h-5 w-5 text-yellow-500" />
+                ) : (
                   <Moon className="h-5 w-5 text-gray-500" />
-                }
+                )}
               </Button>
             </div>
           </CardHeader>
         </Card>
-  
+
         {/* Deuxième carte */}
         <Card className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 shadow-xl border-0">
           <CardContent className="p-6">
@@ -130,31 +152,32 @@ export function EventDashboard() {
                 className="pl-10 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:ring-purple-500 dark:focus:ring-purple-400"
               />
             </div>
-  
-            <Tabs 
-              defaultValue="upcoming" 
-              className="space-y-6" 
-              onValueChange={setCurrentTab}
-            >
+
+            <Tabs defaultValue="upcoming" className="space-y-6">
               {/* Contenu des onglets */}
               <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                <TabsTrigger 
+                <TabsTrigger
                   value="upcoming"
                   className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-purple-500 dark:data-[state=active]:text-purple-400"
                 >
                   Upcoming ({filterEvents(upcomingEvents).length})
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="past"
                   className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-purple-500 dark:data-[state=active]:text-purple-400"
                 >
                   Past ({filterEvents(pastEvents).length})
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="favorites"
                   className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-purple-500 dark:data-[state=active]:text-purple-400"
                 >
-                  Favorites ({filterEvents(events.filter(e => favorites.includes(e.id))).length})
+                  Favorites (
+                  {
+                    filterEvents(events.filter((e) => favorites.includes(e.id)))
+                      .length
+                  }
+                  )
                 </TabsTrigger>
               </TabsList>
 
@@ -165,7 +188,7 @@ export function EventDashboard() {
                     <p className="text-lg">No upcoming events found</p>
                   </div>
                 ) : (
-                  filterEvents(upcomingEvents).map(event => (
+                  filterEvents(upcomingEvents).map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -177,15 +200,12 @@ export function EventDashboard() {
               </TabsContent>
 
               <TabsContent value="past" className="space-y-4">
-                <Select 
-                  value={selectedYear} 
-                  onValueChange={setSelectedYear}
-                >
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
                   <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
                     <SelectValue placeholder="Filter by year" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableYears.map(year => (
+                    {availableYears.map((year) => (
                       <SelectItem key={year} value={year}>
                         {year === "all" ? "All Years" : year}
                       </SelectItem>
@@ -198,7 +218,7 @@ export function EventDashboard() {
                     <p className="text-lg">No past events found</p>
                   </div>
                 ) : (
-                  filterEvents(pastEvents).map(event => (
+                  filterEvents(pastEvents).map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -210,15 +230,18 @@ export function EventDashboard() {
               </TabsContent>
 
               <TabsContent value="favorites" className="space-y-4">
-                {filterEvents(events.filter(e => favorites.includes(e.id))).length === 0 ? (
+                {filterEvents(events.filter((e) => favorites.includes(e.id)))
+                  .length === 0 ? (
                   <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                     <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p className="text-lg">No favorite events yet</p>
                   </div>
                 ) : (
-                  filterEvents(events.filter(e => favorites.includes(e.id)))
-                    .sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
-                    .map(event => (
+                  filterEvents(events.filter((e) => favorites.includes(e.id)))
+                    .sort(
+                      (a, b) => b.startDate.getTime() - a.startDate.getTime(),
+                    )
+                    .map((event) => (
                       <EventCard
                         key={event.id}
                         event={event}
