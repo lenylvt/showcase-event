@@ -1,7 +1,6 @@
 // components/dashboard/event-filters.tsx
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from 'lucide-react';
+import { Search } from "lucide-react";
 
 interface EventFiltersProps {
   searchTerm: string;
@@ -14,9 +13,6 @@ interface EventFiltersProps {
 export function EventFilters({
   searchTerm,
   onSearchChange,
-  selectedCategory,
-  onCategoryChange,
-  categories
 }: EventFiltersProps) {
   return (
     <div className="space-y-4">
@@ -29,8 +25,6 @@ export function EventFilters({
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
-
-      
     </div>
   );
 }
